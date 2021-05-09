@@ -1,44 +1,50 @@
-from subprocess import Popen
+import os
 from cv2 import cv2
 import time
 from tqdm import tqdm
-adb = ".\\tools\\adb.exe "
-env = {"PATH":".\\tools"}
+adb = ".\\tools\\adb.exe"
+env = {"PATH": ".\\tools"}
+
 
 def loadImg(filepath):
     return cv2.cvtColor(cv2.imread(filepath), cv2.CV_8U)
 
 
 def touch(x, y):
-    adb_cmd(["shell","input","tap",str(x),str(y)])
+    adb_cmd(["shell", "input", "tap", str(x), str(y)])
 
 
 def screenCap():
-    adb_cmd(["shell","screencap","-p","/mnt/shared/MuMu共享文件夹/screen.png"])
-    adb_cmd(["pull","/mnt/shared/MuMu共享文件夹/screen.png",".\\cache\\screen.png"])
+    adb_cmd(["shell", "screencap", "-p", "/mnt/shared/MuMu共享文件夹/screen.png"])
+    adb_cmd(["pull", "/mnt/shared/MuMu共享文件夹/screen.png", ".\\cache\\screen.png"])
     return loadImg(".\\cache\\screen.png")
 
-def adb_cmd(command:list)-> Popen:
+
+def adb_cmd(command: list):
     temp = [adb]
     temp.extend(command)
-    return Popen(temp,env=env)
+    os.system(' '.join(temp))
+    
+
 class arknight():
     normal_start_img = None
     normal_start2_img = None
     normal_end_img = None
     lizhi_img = None
 
-    def init(self) -> None:
+    def __init__(self) -> None:
+        print("======开始加载======")
         adb_cmd(["kill-server"])
-        adb_cmd(["connect","127.0.0.1:7555"])
+        adb_cmd(["connect", "127.0.0.1:7555"])
         adb_cmd(["remount"])
         self.normal_start_img = loadImg(".\\picture\\normal_start.png")
         self.normal_start2_img = loadImg(".\\picture\\normal_start_2.png")
         self.normal_end_img = loadImg(".\\picture\\normal_end.png")
         self.lizhi_img = loadImg(".\\picture\\lizhi.png")
+        print("======加载完毕======")
 
     def exit(self):
-        adb_cmd(["disconnect","127.0.0.1:7555"])
+        adb_cmd(["disconnect", "127.0.0.1:7555"])
         adb_cmd(["kill-server"])
 
     def normal_start(self):
@@ -82,14 +88,15 @@ class arknight():
 
 if __name__ == "__main__":
     arknight = arknight()
-    arknight.init()
     while(True):
+        print("========菜单========")
         print("1)普通模式")
         print("2)普通模式(碎石)")
         print("3)剿灭模式(暂无)")
         print("4)剿灭模式(碎石)")
         print("5)截图")
         print("6)退出")
+        print("========END=========")
         mode = int(input("选择模式:"))
         if(mode == 1):
             arknight.normal_circle(int(input("输入刷图次数:")), False)

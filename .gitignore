@@ -1,6 +1,4 @@
 screen.png
-run.bat
-arknightADB.build/
-arknightADB.dist/
 ._cache_adb.exe
 arknightADB.exe
+test.py
