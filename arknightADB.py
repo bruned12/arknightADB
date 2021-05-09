@@ -34,7 +34,6 @@ class arknight():
 
     def __init__(self) -> None:
         print("======开始加载======")
-        adb_cmd(["kill-server","|echo off"])
         adb_cmd(["connect", "127.0.0.1:7555"])
         adb_cmd(["remount"])
         self.normal_start_img = loadImg(".\\picture\\normal_start.png")
@@ -80,7 +79,7 @@ class arknight():
                         if(self.matchTemp(screen, self.normal_end_img) == (1070.5, 548.5)):
                             self.normal_end()
                             break
-                        time.sleep(3)
+                        time.sleep(1)
                     pbar.update(1)
                 else:
                     break
@@ -108,6 +107,7 @@ if __name__ == "__main__":
             print("暂无")
         elif(mode == 5):
             screenCap()
+            print("保存在cache文件夹里面")
         elif(mode == 6):
             arknight.exit()
             break
