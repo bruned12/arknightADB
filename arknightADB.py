@@ -16,7 +16,7 @@ def touch(x, y):
 
 def screenCap():
     adb_cmd(["shell", "screencap", "-p", "/mnt/shared/MuMu共享文件夹/screen.png"])
-    adb_cmd(["pull", "/mnt/shared/MuMu共享文件夹/screen.png", ".\\cache\\screen.png"])
+    adb_cmd(["pull", "/mnt/shared/MuMu共享文件夹/screen.png", ".\\cache\\screen.png","|echo off"])
     return loadImg(".\\cache\\screen.png")
 
 
@@ -34,7 +34,7 @@ class arknight():
 
     def __init__(self) -> None:
         print("======开始加载======")
-        adb_cmd(["kill-server"])
+        adb_cmd(["kill-server","|echo off"])
         adb_cmd(["connect", "127.0.0.1:7555"])
         adb_cmd(["remount"])
         self.normal_start_img = loadImg(".\\picture\\normal_start.png")
