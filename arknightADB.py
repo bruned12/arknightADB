@@ -1,44 +1,45 @@
-import os
+from subprocess import Popen
 from cv2 import cv2
 import time
-import matplotlib.pyplot as plt
 from tqdm import tqdm
 adb = ".\\tools\\adb.exe "
-
+env = {"PATH":".\\tools"}
 
 def loadImg(filepath):
     return cv2.cvtColor(cv2.imread(filepath), cv2.CV_8U)
 
 
 def touch(x, y):
-    os.system(adb+"shell input tap %s %s" % (x, y))
+    adb_cmd(["shell","input","tap",str(x),str(y)])
 
 
 def screenCap():
-    os.system(adb+"shell screencap -p /mnt/shared/MuMu共享文件夹/screen.png")
-    os.system(
-        adb+"pull /mnt/shared/MuMu共享文件夹/screen.png .\\cache\\screen.png |echo off")
+    adb_cmd(["shell","screencap","-p","/mnt/shared/MuMu共享文件夹/screen.png"])
+    adb_cmd(["pull","/mnt/shared/MuMu共享文件夹/screen.png",".\\cache\\screen.png"])
     return loadImg(".\\cache\\screen.png")
 
-
+def adb_cmd(command:list)-> Popen:
+    temp = [adb]
+    temp.extend(command)
+    return Popen(temp,env=env)
 class arknight():
     normal_start_img = None
     normal_start2_img = None
     normal_end_img = None
     lizhi_img = None
 
-    def init(self):
-        os.system(adb+"kill-server |echo off")
-        os.system(adb+"connect 127.0.0.1:7555 |echo off")
-        os.system(adb+"remount |echo off")
+    def init(self) -> None:
+        adb_cmd(["kill-server"])
+        adb_cmd(["connect","127.0.0.1:7555"])
+        adb_cmd(["remount"])
         self.normal_start_img = loadImg(".\\picture\\normal_start.png")
         self.normal_start2_img = loadImg(".\\picture\\normal_start_2.png")
         self.normal_end_img = loadImg(".\\picture\\normal_end.png")
         self.lizhi_img = loadImg(".\\picture\\lizhi.png")
 
     def exit(self):
-        os.system(adb+"disconnect 127.0.0.1:7555")
-        os.system(adb+"kill-server")
+        adb_cmd(["disconnect","127.0.0.1:7555"])
+        adb_cmd(["kill-server"])
 
     def normal_start(self):
         touch("1283.5", "740.5")
@@ -51,13 +52,6 @@ class arknight():
 
     def lizhi(self):
         touch("1230", "650")
-
-    def showimgtm(self, screen, loc, img):
-        shape = img.shape
-        cv2.rectangle(
-            screen, loc, (loc[0]+shape[1], loc[1]+shape[0]), (0, 0, 255), thickness=5)
-        plt.imshow(screen)
-        plt.show()
 
     def matchTemp(self, screen, img):
         res = cv2.matchTemplate(screen, img, cv2.TM_CCORR_NORMED)
