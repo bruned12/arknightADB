@@ -5,7 +5,6 @@ from tqdm import tqdm
 adb = ".\\tools\\adb.exe"
 env = {"PATH": ".\\tools"}
 
-
 def loadImg(filepath):
     return cv2.cvtColor(cv2.imread(filepath), cv2.CV_8U)
 
@@ -18,7 +17,6 @@ def screenCap():
     adb_cmd(["shell", "screencap", "-p", "/mnt/shared/MuMu共享文件夹/screen.png"])
     adb_cmd(["pull", "/mnt/shared/MuMu共享文件夹/screen.png", ".\\cache\\screen.png","|echo off"])
     return loadImg(".\\cache\\screen.png")
-
 
 def adb_cmd(command: list):
     temp = [adb]
@@ -40,11 +38,8 @@ class arknight():
         self.normal_start2_img = loadImg(".\\picture\\normal_start_2.png")
         self.normal_end_img = loadImg(".\\picture\\normal_end.png")
         self.lizhi_img = loadImg(".\\picture\\lizhi.png")
+        print("资源文件已加载")
         print("======加载完毕======")
-
-    def exit(self):
-        adb_cmd(["disconnect", "127.0.0.1:7555"])
-        adb_cmd(["kill-server"])
 
     def normal_start(self):
         touch("1283.5", "740.5")
@@ -86,6 +81,9 @@ class arknight():
 
 
 if __name__ == "__main__":
+    os.system(adb+" kill-server")
+    os.system(adb+" start-server")
+
     arknight = arknight()
     while(True):
         print("========菜单========")
@@ -109,5 +107,7 @@ if __name__ == "__main__":
             screenCap()
             print("保存在cache文件夹里面")
         elif(mode == 6):
-            arknight.exit()
             break
+        
+    adb_cmd(["disconnect", "127.0.0.1:7555"])
+    adb_cmd(["kill-server"])
