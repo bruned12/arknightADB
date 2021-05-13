@@ -1,90 +1,89 @@
 import os
+from sys import stdout
 from cv2 import cv2
 import time
 from tqdm import tqdm
+
+
 adb = ".\\tools\\adb.exe"
-env = {"PATH": ".\\tools"}
+
+normal_start_img = None
+normal_start2_img = None
+normal_end_img = None
+lizhi_img = None
+
 
 def loadImg(filepath):
     return cv2.cvtColor(cv2.imread(filepath), cv2.CV_8U)
 
 
 def touch(x, y):
-    adb_cmd(["shell", "input", "tap", str(x), str(y)])
+    os.system(build_adbshell_cmd("shell input tap %s %s" % (str(x), str(y))))
 
 
 def screenCap():
-    adb_cmd(["shell", "screencap", "-p", "/mnt/shared/MuMu共享文件夹/screen.png"])
-    adb_cmd(["pull", "/mnt/shared/MuMu共享文件夹/screen.png", ".\\cache\\screen.png","|echo off"])
+    os.system(build_adbshell_cmd("shell screencap -p /sdcard/screen.png")+"&&"+build_adbshell_cmd("pull /sdcard/screen.png .\\cache\\screen.png|echo off"))
     return loadImg(".\\cache\\screen.png")
 
-def adb_cmd(command: list):
-    temp = [adb]
-    temp.extend(command)
-    os.system(' '.join(temp))
-    
+def build_adbshell_cmd(cmd):
+    return adb+" "+cmd
 
-class arknight():
-    normal_start_img = None
-    normal_start2_img = None
-    normal_end_img = None
-    lizhi_img = None
+def normal_start():
+    touch("1283.5", "740.5")
 
-    def __init__(self) -> None:
-        print("======开始加载======")
-        adb_cmd(["connect", "127.0.0.1:7555"])
-        adb_cmd(["remount"])
-        self.normal_start_img = loadImg(".\\picture\\normal_start.png")
-        self.normal_start2_img = loadImg(".\\picture\\normal_start_2.png")
-        self.normal_end_img = loadImg(".\\picture\\normal_end.png")
-        self.lizhi_img = loadImg(".\\picture\\lizhi.png")
-        print("资源文件已加载")
-        print("======加载完毕======")
 
-    def normal_start(self):
-        touch("1283.5", "740.5")
+def normal_start_2():
+    touch("1241.5", "569.5")
 
-    def normal_start_2(self):
-        touch("1241.5", "569.5")
 
-    def normal_end(self):
-        touch("720", "405")
+def normal_end():
+    touch("720", "405")
 
-    def lizhi(self):
-        touch("1230", "650")
 
-    def matchTemp(self, screen, img):
-        res = cv2.matchTemplate(screen, img, cv2.TM_CCORR_NORMED)
-        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
-        #print(max_loc[0]+img.shape[1]/2, max_loc[1]+img.shape[0]/2)
-        return (max_loc[0]+img.shape[1]/2, max_loc[1]+img.shape[0]/2)
+def lizhi():
+    touch("1230", "650")
 
-    def normal_circle(self, count: int, mode: bool):
-        with tqdm(total=count, desc="刷图进度") as pbar:
-            for c in range(count):
-                if(c <= count):
-                    while(True):
-                        screen = screenCap()
-                        if(self.matchTemp(screen, self.lizhi_img) == (1307.5, 451.0) and mode):
-                            self.lizhi()
-                        if(self.matchTemp(screen, self.normal_start_img) == (1283.5, 740.5)):
-                            self.normal_start()
-                        if(self.matchTemp(screen, self.normal_start2_img) == (1241.5, 569.5)):
-                            self.normal_start_2()
-                        if(self.matchTemp(screen, self.normal_end_img) == (1070.5, 548.5)):
-                            self.normal_end()
-                            break
-                        time.sleep(1)
-                    pbar.update(1)
-                else:
-                    break
+
+def matchTemp(screen, img):
+    res = cv2.matchTemplate(screen, img, cv2.TM_CCORR_NORMED)
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    #print(max_loc[0]+img.shape[1]/2, max_loc[1]+img.shape[0]/2)
+    return (max_loc[0]+img.shape[1]/2, max_loc[1]+img.shape[0]/2)
+
+
+def normal_circle(count: int, mode: bool):
+    with tqdm(total=count, desc="刷图进度") as pbar:
+        for c in range(count):
+            if(c <= count):
+                while(True):
+                    screen = screenCap()
+                    if(matchTemp(screen, lizhi_img) == (1307.5, 451.0) and mode):
+                        lizhi()
+                    if(matchTemp(screen, normal_start_img) == (1283.5, 740.5)):
+                        normal_start()
+                    if(matchTemp(screen, normal_start2_img) == (1241.5, 569.5)):
+                        normal_start_2()
+                    if(matchTemp(screen, normal_end_img) == (1070.5, 548.5)):
+                        normal_end()
+                        break
+                    time.sleep(1)
+                pbar.update(1)
+            else:
+                break
 
 
 if __name__ == "__main__":
     os.system(adb+" kill-server")
-    os.system(adb+" start-server")
+    print("连接模拟器")
+    os.system(adb+" connect 127.0.0.1:7555")
+    print("ADB进程已启动")
+    normal_start_img = loadImg(".\\picture\\normal_start.png")
+    normal_start2_img = loadImg(".\\picture\\normal_start_2.png")
+    normal_end_img = loadImg(".\\picture\\normal_end.png")
+    lizhi_img = loadImg(".\\picture\\lizhi.png")
+    print("资源文件已加载")
+    print("======加载完毕======")
 
-    arknight = arknight()
     while(True):
         print("========菜单========")
         print("1)普通模式")
@@ -96,9 +95,9 @@ if __name__ == "__main__":
         print("========END=========")
         mode = int(input("选择模式:"))
         if(mode == 1):
-            arknight.normal_circle(int(input("输入刷图次数:")), False)
+            normal_circle(int(input("输入刷图次数:")), False)
         elif(mode == 2):
-            arknight.normal_circle(int(input("输入刷图次数:")), True)
+            normal_circle(int(input("输入刷图次数:")), True)
         elif(mode == 3):
             print("暂无")
         elif(mode == 4):
@@ -108,6 +107,5 @@ if __name__ == "__main__":
             print("保存在cache文件夹里面")
         elif(mode == 6):
             break
-        
-    adb_cmd(["disconnect", "127.0.0.1:7555"])
-    adb_cmd(["kill-server"])
+    os.system(adb+" disconnect 127.0.0.1:7555")
+    os.system(adb+" kill-server")
